@@ -1,0 +1,40 @@
+{% extends 'padrao.html' %}
+
+{% block conteudo %}
+    <form method="post" action="/adicionar">
+        <fieldset>
+            
+
+            <div class="mb-3">
+                <label for="txtNomeUser">Nome</label>
+                <input type="text" name="txtNome" id="txtNomeUser" class="form-control">
+            </div>
+            
+            <div class="mb-3">
+                <label for="txtEmail">Email:</label>
+                <input type="text" name="txtEmail" id="txtEmail" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="txtTel">Telefone:</label>
+                <input type="text" name="txtTel" id="txtTel" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="txtSenha">Senha</label>
+                <input type = "password" class="form-control" name ="txtSenha" id="txtSenha">
+            </div>
+
+
+            <div class="mb-3">
+                <label for="txtConfirmaSenha">Confirmar Senha</label>
+                <input type = "password" class="form-control" name ="txtConfirmaSenha" id="txtConfirmaSenha">
+            </div>
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Cadastrar</button>
+            </div>
+        </fieldset>
+        
+    </form>
+{% endblock %}   
