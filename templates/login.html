@@ -19,6 +19,9 @@
         {% endwith %}
 
         <div class="container">
+            <br>
+            <h1>Entre na sua conta</h1>
+            <br>
             <form method="post" action="/autenticar">
                 <fieldset>
                     <div class="mb-3">
@@ -35,6 +38,14 @@
                     </div>
                 </fieldset>
             </form>
+            <br>
+            <h2>Cadastre-se</h2>
+            <br>
+            <div class="mb-6">
+                <button type=""submit" class="btn btn-warning" onclick="window.location.href='{{ url_for( 'cadastrarUsuario') }}';"><b>Cadastrar</b></button>
+            </div>
+            
         </div> 
+        
     </body>
 </html>

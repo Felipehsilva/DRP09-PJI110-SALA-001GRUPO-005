@@ -1,40 +1,52 @@
 {% extends 'padrao.html' %}
 
 {% block conteudo %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <ul class="list-unstyled" id=""messages>
+        {% for message in messages %}
+            <li class="alert alert-danger">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endwith %}
+
     <form method="post" action="/adicionar">
         <fieldset>
             
 
             <div class="mb-3">
-                <label for="txtNomeUser">Nome</label>
-                <input type="text" name="txtNome" id="txtNomeUser" class="form-control">
+                <label for="txtCadastroNomeUser">Nome</label>
+                <input type="text" name="txtCadastroNomeUser" id="txtCadastroNomeUser" class="form-control">
             </div>
             
             <div class="mb-3">
-                <label for="txtUser">Usuario</label>
-                <input type="text" name="txtUser" id="txtUser" class="form-control">
+                <label for="txtCadastroUser">Usuario</label>
+                <input type="text" name="txtCadastroUser" id="txtCadastroUser" class="form-control">
             </div>
 
             <div class="mb-3">
-                <label for="txtEmail">Email:</label>
-                <input type="text" name="txtEmail" id="txtEmail" class="form-control">
+                <label for="txtCadastroCPF">CPF</label>
+                <input type="text" name="txtCadastroCPF" id="txtCadastroCPF" class="form-control">
             </div>
 
             <div class="mb-3">
-                <label for="txtTel">Telefone:</label>
-                <input type="text" name="txtTel" id="txtTel" class="form-control">
+                <label for="txtCadastroEmail">Email:</label>
+                <input type="text" name="txtCadastroEmail" id="txtCadastroEmail" class="form-control">
             </div>
 
             <div class="mb-3">
-                <label for="txtSenha">Senha:</label>
-                <input type = "password" class="form-control" name ="txtSenha" id="txtSenha">
+                <label for="txtCadastroTel">Telefone:</label>
+                <input type="text" name="txtCadastroTel" id="txtCadastroTel" class="form-control">
             </div>
-
 
             <div class="mb-3">
-                <label for="txtConfirmaSenha">Confirmar Senha:</label>
-                <input type = "password" class="form-control" name ="txtConfirmaSenha" id="txtConfirmaSenha">
+                <label for="txtCadastroSenha">Senha:</label>
+                <input type="text" class="form-control" name ="txtCadastroSenha" id="txtCadastroSenha">
             </div>
+
+
+           
             
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Cadastrar</button>
