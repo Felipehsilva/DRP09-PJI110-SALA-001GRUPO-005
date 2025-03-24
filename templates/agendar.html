@@ -1,5 +1,159 @@
 {% extends 'padrao.html' %}
 
 {% block conteudo %}
-    <div>Pagina para agendar</div>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <style>
+        .horarios-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .horario {
+            padding: 10px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            width: 100px;
+            background-color: #f8f9fa;
+        }
+        .horario:hover, .horario.selected {
+            background-color: #007bff;
+            color: white;
+        }
+        .horario.disabled {
+            background-color: #ddd;
+            color: #888;
+            cursor: not-allowed;
+        }
+         .datepicker-dropdown {
+            position: absolute !important;
+            left: 50% !important; /* Centraliza horizontalmente */
+            transform: translateX(-50%) !important; /* Ajusta o elemento para realmente centralizar */
+        }
+    </style>
+</head>
+<body class="container py-5">
+
+    <h2 class="text-center">Agendamento</h2>
+
+    <form method="post" action="/enviarAgendamento">
+        <div class="mt-4">
+            <label for="datepicker">Escolha uma data:</label>
+            <input type="text" id="datepicker" name="data" class="form-control w-30" required>
+        </div>
+
+        <div class="mt-4">
+            <label>Escolha um horário:</label>
+            <div class="horarios-container mt-2" id="horarios"></div>
+            <input type="hidden" id="horarioInput" name="horario" required>
+        </div>
+
+        <div class="mt-4">
+            <h4>Resumo:</h4>
+            <p>Data escolhida: <span name="dataEscolhida" id="dataEscolhida">Nenhuma</span></p>
+           
+            <p>Horário escolhido: <span name="horarioEscolhido" id="horarioEscolhido">Nenhum</span></p>
+            
+        </div> 
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
+        </div>
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            // Inicializa o Datepicker e bloqueia datas passadas
+            $("#datepicker").datepicker({
+                format: "dd/mm/yyyy",
+                autoclose: true,
+                todayHighlight: true,
+                startDate: "today"
+            }).on("changeDate", function(e) {
+                let dataSelecionada = e.format(0);
+                $("#dataEscolhida").text(dataSelecionada);
+                atualizarHorarios(dataSelecionada);
+            });
+
+            function gerarHorarios() {
+                let horarios = [];
+                let hora = 9;  // Início: 9h00
+                let minuto = 0;
+                while (hora < 18) {  // Fim: 17h30
+                    let horaFormatada = (hora < 10 ? "0" : "") + hora;
+                    let minutoFormatado = (minuto === 0 ? "00" : "30");
+                    horarios.push(`${horaFormatada}:${minutoFormatado}`);
+                    
+                    if (minuto === 0) {
+                        minuto = 30;
+                    } else {
+                        minuto = 0;
+                        hora++;
+                    }
+                }
+                return horarios;
+            }
+
+            function atualizarHorarios(dataSelecionada) {
+                let horariosArray = gerarHorarios();
+                let horariosDiv = $("#horarios");
+                horariosDiv.empty(); // Limpa os horários antigos
+
+                let hoje = new Date();
+                let dataEscolhida = new Date(dataSelecionada.split('/').reverse().join('-')); // Converte para formato Date
+                let horaAtual = hoje.getHours();
+                let minutoAtual = hoje.getMinutes();
+
+                horariosArray.forEach(horario => {
+                    let [hora, minuto] = horario.split(":").map(Number);
+                    let estaDesabilitado = false;
+
+                    // Se for hoje, desativa horários passados
+                    if (dataEscolhida.toDateString() === hoje.toDateString()) {
+                        if (hora < horaAtual || (hora === horaAtual && minuto <= minutoAtual)) {
+                            estaDesabilitado = true;
+                        }
+                    }
+
+                    let div = `<div class="horario ${estaDesabilitado ? 'disabled' : ''}">${horario}</div>`;
+                    horariosDiv.append(div);
+                });
+            }
+
+            // Captura o horário selecionado
+            $(document).on("click", ".horario:not(.disabled)", function () {
+                $(".horario").removeClass("selected");
+                $(this).addClass("selected");
+                let horarioSelecionado = $(this).text();
+                $("#horarioEscolhido").text(horarioSelecionado);
+                $("#horarioInput").val(horarioSelecionado); // Atualiza o campo hidden
+            });
+
+            // Validação do formulário
+            $("#agendamentoForm").on("submit", function(e) {
+                if ($("#horarioInput").val() === "") {
+                    e.preventDefault();
+                    alert("Por favor, selecione um horário.");
+                }
+            });
+
+            // Inicializa os horários para hoje
+            let hoje = new Date();
+            let dataHoje = hoje.toLocaleDateString("pt-BR");
+            atualizarHorarios(dataHoje);
+        });
+    </script>
+
+</body>
+</html>
 {% endblock %}   

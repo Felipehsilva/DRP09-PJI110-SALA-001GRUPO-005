@@ -32,6 +32,15 @@ class Usuario(db.Model):
 
     def __repr__(self):
         return '<Name %r>' % self.name
+    
+class Agendamento(db.Model):
+    # a variavel tem que ser o mesmo nome do campo da tabela
+    cpf = db.Column(db.Integer, nullable=False)
+    dataAgendamento = db.Column(db.String(50), primary_key=True)
+    horaAgendamento = db.Column(db.String(50), primary_key=True)
+
+    def __repr__(self):
+        return '<Name %r>' % self.name    
 
 
 @app.route("/login") 
@@ -49,7 +58,7 @@ def autenticar():
         if request.form['txtSenha'] == usuario.senha:
             session['usuario_logado'] = request.form['txtLogin']
             flash(f"Usuario {usuario.login_usuario} Logado com sucesso!")
-            return redirect(url_for('agendamentos'))
+            return redirect(url_for('meus_agendamentos'))
         else:
             flash("Senha Invalida")
             return redirect(url_for('logar'))
@@ -57,30 +66,6 @@ def autenticar():
         flash("Usuario/Senha invalida")
         return redirect(url_for('logar'))
 
-
-
-
-
-
-
-
-
-
-'''
-    if request.form['txtLogin'] in usuarios:
-        usuarioEncontrado = usuarios[request.form['txtLogin']]
-        if request.form['txtSenha'] == usuarioEncontrado.senha:
-            session['usuario_logado'] = request.form['txtLogin']
-            flash(f"Usuario {usuarioEncontrado.login} Logado com sucesso!")
-            return redirect(url_for('cadastrarUsusario'))
-        else:
-            flash("Senha Invalida")
-            return redirect(url_for('logar'))
-    else:
-        flash("Usuario/Senha invalida")
-        return redirect(url_for('logar'))
-    
-'''
 
 
 @app.route("/cadastrar") 
@@ -149,12 +134,67 @@ def agendar():
                            
                            )
 
+@app.route('/enviarAgendamento', methods=['POST'])
+def adicionar_agendamento():
+    dataEscolhida = request.form['data']
+    horarioEscolhido = request.form['horario']
+    user = session.get('usuario_logado')  # Usando .get() para evitar erro se não existir
+
+    if not user:
+        flash("Você precisa estar logado para agendar.")
+        return redirect(url_for('logar'))
+
+    usuario = Usuario.query.filter_by(login_usuario=user).first()
+
+    if not usuario:
+        flash("Usuário não encontrado.")
+        return redirect(url_for('logar'))
+
+    # Verificar se já existe um agendamento no mesmo dia e horário
+    agendamento_existente = Agendamento.query.filter_by(
+        dataAgendamento=dataEscolhida,
+        horaAgendamento=horarioEscolhido
+    ).first()
+
+    if agendamento_existente:
+        flash("Este horário já está agendado. Por favor, escolha outro.")
+        return redirect(url_for('agendar'))
+
+    # Criar um novo agendamento
+    novo_agendamento = Agendamento(
+        cpf=usuario.cpf,
+        dataAgendamento=dataEscolhida,
+        horaAgendamento=horarioEscolhido
+    )
+
+    db.session.add(novo_agendamento)
+    db.session.commit()
+
+    flash("Agendamento realizado com sucesso!")
+    return redirect(url_for('agendar'))
+
+@app.route("/meus_agendamentos")
+def meus_agendamentos():
+    if 'usuario_logado' not in session or not session['usuario_logado']:
+        flash("Você precisa estar logado para ver seus agendamentos.")
+        return redirect(url_for('logar'))
+
+    user = session['usuario_logado']
+    usuario = Usuario.query.filter_by(login_usuario=user).first()
+
+    if not usuario:
+        flash("Usuário não encontrado.")
+        return redirect(url_for('logar'))
+
+    agendamentos = Agendamento.query.filter_by(cpf=usuario.cpf).all()
+    
+  
+    return render_template("agendamentos.html", agendamentos=agendamentos, titulo="Meus Agendamentos")
+
 @app.route('/sair')
 def sair():
     session['usuario_logado'] = None
     return redirect(url_for('logar'))
 
 
-
 app.run(debug=True)# debug = True evita ter que rodar manualmente o flask apos cada atualizacao no codigo
-
