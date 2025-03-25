@@ -130,7 +130,7 @@ def agendar():
     
     return render_template('agendar.html',
                            
-                           titulo = "Realizar agendamentos"
+                           
                            
                            )
 
