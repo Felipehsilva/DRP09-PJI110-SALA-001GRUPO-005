@@ -12,10 +12,10 @@ app.secret_key = 'PI1'
 app.config['SQLALCHEMY_DATABASE_URI'] = \
 '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
     SGBD = 'mysql+mysqlconnector',
-    usuario = 'root',
-    senha = '123456',
-    servidor = 'localhost',
-    database = 'pi_schema'
+    usuario = 'avnadmin',
+    senha = 'AVNS_3NuM-f_GZn4ASvN5Glb',
+    servidor = 'mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
+    database = 'defaultdb'
 
 )
 
@@ -43,8 +43,16 @@ class Agendamento(db.Model):
         return '<Name %r>' % self.name    
 
 
-@app.route("/login") 
+@app.route("/logar") 
 def logar():
+    return render_template('login.html',
+                           
+                           titulo = "Pagina de Login"
+                           
+                           )
+
+@app.route("/") 
+def logar1():
     return render_template('login.html',
                            
                            titulo = "Pagina de Login"
@@ -197,4 +205,9 @@ def sair():
     return redirect(url_for('logar'))
 
 
-app.run(debug=True)# debug = True evita ter que rodar manualmente o flask apos cada atualizacao no codigo
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)# debug = True evita ter que rodar manualmente o flask apos cada atualizacao no codigo
+    
