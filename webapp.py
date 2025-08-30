@@ -65,7 +65,7 @@ def autenticar():
     if usuario:    
         if request.form['txtSenha'] == usuario.senha:
             session['usuario_logado'] = request.form['txtLogin']
-            flash(f"Usuario {usuario.login_usuario} Logado com sucesso!")
+            flash(f"Usuário {usuario.login_usuario} Logado com sucesso!")
             return redirect(url_for('meus_agendamentos'))
         else:
             flash("Senha Invalida")
@@ -198,6 +198,23 @@ def meus_agendamentos():
     
   
     return render_template("agendamentos.html", agendamentos=agendamentos, titulo="Meus Agendamentos")
+
+
+@app.route('/remover_agendamento', methods=['POST'])
+def remover_agendamento():
+    data = request.form.get('data')   # Ex: "25/03/2025"
+    hora = request.form.get('hora')   # Ex: "09:00"
+
+    agendamento = Agendamento.query.get((data, hora))
+    if agendamento:
+        db.session.delete(agendamento)
+        db.session.commit()
+        flash('Agendamento removido com sucesso!', 'success')
+    else:
+        flash('Agendamento não encontrado!', 'danger')
+
+    return redirect(url_for('meus_agendamentos'))
+
 
 @app.route('/sair')
 def sair():

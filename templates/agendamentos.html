@@ -1,70 +1,42 @@
 {% extends 'padrao.html' %}
 
 {% block conteudo %}
-  
+<h1 class="text-center mt-4">Meus Agendamentos</h1>
 
-
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-   
-    <title>{{ titulo }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #007BFF;
-            color: white;
-        }
-        .msg {
-            text-align: center;
-            color: red;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <h1>Meus Agendamentos</h1>
-
-    
-    {% if agendamentos %}
-        <table>
+{% if agendamentos %}
+<div class="table-responsive mt-4">
+    <table class="table table-bordered table-striped">
+        <caption class="text-center">Lista de agendamentos do usuário {{session['usuario_logado']}}</caption>
+        <thead class="table-primary">
             <tr>
-                <th>Data</th>
-                <th>Horário</th>
-         
+                <th scope="col" style="width: 10px;">Data</th>
+                <th scope="col" style="width: 10px;">Horário</th>
+                <th scope="col" style="width: 10px;">Cancelar agendamento</th>
             </tr>
+        </thead>
+        <tbody>
             {% for agendamento in agendamentos %}
             <tr>
                 <td>{{ agendamento.dataAgendamento }}</td>
                 <td>{{ agendamento.horaAgendamento }}</td>
-                
+                <td>
+                    <!-- Botão remover seguro via POST -->
+                    <form action="{{ url_for('remover_agendamento') }}" method="post" onsubmit="return confirm('Tem certeza que deseja remover este agendamento?');">
+                        <input type="hidden" name="data" value="{{ agendamento.dataAgendamento }}">
+                        <input type="hidden" name="hora" value="{{ agendamento.horaAgendamento }}">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            &#128465; Remover
+                        </button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
-        </table>
-    {% else %}
-        <p class="msg">Nenhum agendamento encontrado.</p>
-    {% endif %}
-
-</body>
-</html>
-{% endblock %}   
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="msg text-danger text-center fw-bold mt-4" role="alert">
+    Nenhum agendamento encontrado.
+</p>
+{% endif %}
+{% endblock %}

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>{{titulo}}</title>
     <link rel = "stylesheet" href="../static/bootstrap.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
  
 <body>
 
@@ -20,7 +21,7 @@
 
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
-          <a class="navbar-brand" href="/agendar">Clinica Odontologica</a>
+          <a class="navbar-brand" href="/agendar">Barbearia &#128136;&#128135;</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -41,12 +42,96 @@
             </ul>
           </div>
         </div>
+
+
+        <div class="d-flex align-items-center ms-auto">
+            <button id="increase-font" class="btn btn-outline-primary btn-sm me-2" aria-label="Aumentar fonte">A+</button>
+            <button id="decrease-font" class="btn btn-outline-secondary btn-sm me-2" aria-label="Diminuir fonte">A-</button>
+            <button id="toggle-read" class="btn btn-warning btn-sm" aria-label="Ativar leitura de frases">🔊 Leitura</button>
+        </div>
+
+
     </nav>
 <br>
     <div class="container">
-        <h2>{{titulo}}</h2>
+        
 
         {%block conteudo%}{%endblock%}
-    </div>    
+    </div>  
+    
+<script>
+    let currentFontSize = 100; // Percentual da fonte padrão (100%)
+    const content = document.querySelector('body');
+
+    document.getElementById('increase-font').addEventListener('click', function() {
+        if (currentFontSize < 250) { // Limite máximo (150%)
+            currentFontSize += 10;
+            content.style.fontSize = currentFontSize + '%';
+        }
+    });
+
+    document.getElementById('decrease-font').addEventListener('click', function() {
+        if (currentFontSize > 80) { // Limite mínimo (80%)
+            currentFontSize -= 10;
+            content.style.fontSize = currentFontSize + '%';
+        }
+    });
+</script>    
+
+<script>
+let readingEnabled = false;
+let lastSpokenText = '';
+
+document.getElementById('toggle-read').addEventListener('click', function() {
+    readingEnabled = !readingEnabled;
+    this.textContent = readingEnabled ? '🔇 Parar Leitura' : '🔊 Leitura';
+});
+
+document.addEventListener('mousemove', function(event) {
+    if (!readingEnabled) return;
+
+    let range;
+    if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(event.clientX, event.clientY);
+    } else if (document.caretPositionFromPoint) {
+        let pos = document.caretPositionFromPoint(event.clientX, event.clientY);
+        if (pos) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.setEnd(pos.offsetNode, pos.offset + 1);
+        }
+    }
+
+    if (range && range.startContainer.nodeType === Node.TEXT_NODE) {
+        const textNode = range.startContainer.textContent;
+        const offset = range.startOffset;
+
+        // Divide o texto por pontuação para identificar frases
+        const sentences = textNode.split(/([.!?]+)/);
+        let accumulatedLength = 0;
+        let currentSentence = '';
+
+        for (let i = 0; i < sentences.length; i += 2) {
+            let sentence = (sentences[i] + (sentences[i+1] || '')).trim();
+            accumulatedLength += sentence.length;
+
+            if (offset <= accumulatedLength) {
+                currentSentence = sentence;
+                break;
+            }
+        }
+
+        if (currentSentence && currentSentence !== lastSpokenText && currentSentence.length > 3) {
+            lastSpokenText = currentSentence;
+            let utterance = new SpeechSynthesisUtterance(currentSentence);
+            utterance.lang = 'pt-BR';
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        }
+    }
+});
+</script>
+<!-- JS do Bootstrap no final do body -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>        
