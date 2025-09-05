@@ -1,91 +1,90 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message
+from flask import Flask, render_template, request, redirect,session , flash, url_for
+from flask_sqlalchemy import SQLAlchemy 
+
+
+
+
 
 app = Flask(__name__)
+
 app.secret_key = 'PI1'
 
-# Configuração do banco
 app.config['SQLALCHEMY_DATABASE_URI'] = \
-    '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
-        SGBD='mysql+mysqlconnector',
-        usuario='avnadmin',
-        senha='AVNS_3NuM-f_GZn4ASvN5Glb',
-        servidor='mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
-        database='defaultdb'
-    )
+'{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
+    SGBD = 'mysql+mysqlconnector',
+    usuario = 'avnadmin',
+    senha = 'AVNS_3NuM-f_GZn4ASvN5Glb',
+    servidor = 'mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
+    database = 'defaultdb'
+
+)
 
 db = SQLAlchemy(app)
-
-# Configuração do Gmail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'felipehenriquedasilva2008@gmail.com'  # Seu e-mail Gmail
-app.config['MAIL_PASSWORD'] = 'spcw fsik hjoq txdq'  # Senha gerada no Gmail (App Password)
-app.config['MAIL_DEFAULT_SENDER'] = ('Barbearia', 'felipehenriquedasilva2008@gmail.com')
-
-mail = Mail(app)
-
-# ---------------------------
-# MODELOS
-# ---------------------------
+                          
 class Usuario(db.Model):
+    # a variavel tem que ser o mesmo nome do campo da tabela
     cpf = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100), nullable=False)
+    nome= db.Column(db.String(100), nullable=False)
     login_usuario = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     telefone = db.Column(db.String(20), nullable=False)
     senha = db.Column(db.String(20), nullable=False)
 
+    def __repr__(self):
+        return '<Name %r>' % self.name
+    
 class Agendamento(db.Model):
+    # a variavel tem que ser o mesmo nome do campo da tabela
     cpf = db.Column(db.Integer, nullable=False)
     dataAgendamento = db.Column(db.String(50), primary_key=True)
     horaAgendamento = db.Column(db.String(50), primary_key=True)
 
-# ---------------------------
-# FUNÇÃO PARA ENVIAR E-MAIL
-# ---------------------------
-def enviar_email(destinatario, assunto, corpo):
-    try:
-        msg = Message(subject=assunto, recipients=[destinatario])
-        msg.body = corpo
-        mail.send(msg)
-        print(f"E-mail enviado para {destinatario}")
-    except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
+    def __repr__(self):
+        return '<Name %r>' % self.name    
 
-# ---------------------------
-# ROTAS
-# ---------------------------
-@app.route("/")
+
+@app.route("/logar") 
 def logar():
-    return render_template('login.html', titulo="Página de Login")
+    return render_template('login.html',
+                           
+                           titulo = "Pagina de Login"
+                           
+                           )
 
-@app.route("/logar")
-def logar_redirect():
-    return render_template('login.html', titulo="Página de Login")
+@app.route("/") 
+def logar1():
+    return render_template('login.html',
+                           
+                           titulo = "Pagina de Login"
+                           
+                           )
 
-@app.route('/autenticar', methods=['POST'])
+@app.route('/autenticar',methods=['POST',]) 
 def autenticar():
-    usuario = Usuario.query.filter_by(login_usuario=request.form['txtLogin']).first()
-    if usuario:
+    usuario = Usuario.query.filter_by(login_usuario = request.form['txtLogin']).first()
+    if usuario:    
         if request.form['txtSenha'] == usuario.senha:
             session['usuario_logado'] = request.form['txtLogin']
-            flash(f"Usuário {usuario.login_usuario} logado com sucesso!")
+            flash(f"Usuário {usuario.login_usuario} Logado com sucesso!")
             return redirect(url_for('meus_agendamentos'))
         else:
-            flash("Senha inválida")
+            flash("Senha Invalida")
             return redirect(url_for('logar'))
     else:
-        flash("Usuário/Senha inválida")
+        flash("Usuario/Senha invalida")
         return redirect(url_for('logar'))
 
-@app.route("/cadastrar")
-def cadastrarUsuario():
-    return render_template('cadastrar.html', titulo="Cadastrar")
 
-@app.route('/adicionar', methods=['POST'])
+
+@app.route("/cadastrar") 
+def cadastrarUsuario():
+    return render_template('cadastrar.html',
+                           
+                           titulo = "Cadastrar"
+                           
+                           )
+
+@app.route('/adicionar',methods=['POST'])
 def adicionar_usuario():
     nome = request.form['txtCadastroNomeUser']
     user = request.form['txtCadastroUser']
@@ -93,47 +92,73 @@ def adicionar_usuario():
     email = request.form['txtCadastroEmail']
     telefone = request.form['txtCadastroTel']
     senha = request.form['txtCadastroSenha']
+    
 
-    usuario = Usuario.query.filter_by(login_usuario=user).first()
-    cpf_usuario = Usuario.query.filter_by(cpf=cpf).first()
 
-    if usuario:
-        flash("Usuário já cadastrado")
+    usuario = Usuario.query.filter_by(login_usuario = user).first() 
+    cpf_usuario = Usuario.query.filter_by(cpf = cpf).first() 
+
+    if usuario: 
+        flash("Usuario ja cadastrado")
         return redirect(url_for('cadastrarUsuario'))
-    if cpf_usuario:
-        flash("CPF já cadastrado")
+    if cpf_usuario: 
+        flash("CPF ja cadastrado")
         return redirect(url_for('cadastrarUsuario'))
-
-    novo_user = Usuario(cpf=cpf, login_usuario=user, nome=nome, email=email, telefone=telefone, senha=senha)
+    novo_user = Usuario(cpf = cpf, login_usuario = user, nome = nome, email = email, telefone = telefone, senha = senha)
     db.session.add(novo_user)
     db.session.commit()
     return redirect(url_for('cadastroSucesso'))
 
-@app.route("/cadastroSucesso")
+@app.route("/cadastroSucesso") 
 def cadastroSucesso():
-    return render_template('success-registration.html', titulo="Registro Concluído com Sucesso")
+    
+    
+    return render_template('success-registration.html',
+                           
+                           titulo = "Registro Concluido com Sucesso"
+                           
+                           )
 
-@app.route("/agendar")
-def agendar():
-    if session.get('usuario_logado') is None:
+@app.route("/agendamentos") 
+def agendamentos():
+    if session['usuario_logado'] == None or 'usuario_logado' not in session:
         return redirect(url_for('logar'))
-    return render_template('agendar.html')
+    
+    return render_template('agendamentos.html',
+                           
+                           titulo = "agendamentos"
+                           
+                           )
+
+
+@app.route("/agendar") 
+def agendar():
+    if session['usuario_logado'] == None or 'usuario_logado' not in session:
+        return redirect(url_for('logar'))
+    
+    return render_template('agendar.html',
+                           
+                           
+                           
+                           )
 
 @app.route('/enviarAgendamento', methods=['POST'])
 def adicionar_agendamento():
     dataEscolhida = request.form['data']
     horarioEscolhido = request.form['horario']
-    user = session.get('usuario_logado')
+    user = session.get('usuario_logado')  # Usando .get() para evitar erro se não existir
 
     if not user:
         flash("Você precisa estar logado para agendar.")
         return redirect(url_for('logar'))
 
     usuario = Usuario.query.filter_by(login_usuario=user).first()
+
     if not usuario:
         flash("Usuário não encontrado.")
         return redirect(url_for('logar'))
 
+    # Verificar se já existe um agendamento no mesmo dia e horário
     agendamento_existente = Agendamento.query.filter_by(
         dataAgendamento=dataEscolhida,
         horaAgendamento=horarioEscolhido
@@ -143,6 +168,7 @@ def adicionar_agendamento():
         flash("Este horário já está agendado. Por favor, escolha outro.")
         return redirect(url_for('agendar'))
 
+    # Criar um novo agendamento
     novo_agendamento = Agendamento(
         cpf=usuario.cpf,
         dataAgendamento=dataEscolhida,
@@ -152,20 +178,12 @@ def adicionar_agendamento():
     db.session.add(novo_agendamento)
     db.session.commit()
 
-    # Enviar e-mail de confirmação
-    enviar_email(
-        usuario.email,
-        "Confirmação de Agendamento",
-        f"Olá {usuario.nome}, seu agendamento foi realizado com sucesso!\n"
-        f"Data: {dataEscolhida}\nHorário: {horarioEscolhido}\nObrigado por escolher nossa barbearia!"
-    )
-
     flash("Agendamento realizado com sucesso!")
     return redirect(url_for('agendar'))
 
 @app.route("/meus_agendamentos")
 def meus_agendamentos():
-    if session.get('usuario_logado') is None:
+    if 'usuario_logado' not in session or not session['usuario_logado']:
         flash("Você precisa estar logado para ver seus agendamentos.")
         return redirect(url_for('logar'))
 
@@ -177,38 +195,36 @@ def meus_agendamentos():
         return redirect(url_for('logar'))
 
     agendamentos = Agendamento.query.filter_by(cpf=usuario.cpf).all()
+    
+  
     return render_template("agendamentos.html", agendamentos=agendamentos, titulo="Meus Agendamentos")
+
 
 @app.route('/remover_agendamento', methods=['POST'])
 def remover_agendamento():
-    data = request.form.get('data')
-    hora = request.form.get('hora')
+    data = request.form.get('data')   # Ex: "25/03/2025"
+    hora = request.form.get('hora')   # Ex: "09:00"
 
     agendamento = Agendamento.query.get((data, hora))
     if agendamento:
         db.session.delete(agendamento)
         db.session.commit()
-
-        # Enviar e-mail informando o cancelamento
-        user = session.get('usuario_logado')
-        usuario = Usuario.query.filter_by(login_usuario=user).first()
-        if usuario:
-            enviar_email(
-                usuario.email,
-                "Cancelamento de Agendamento",
-                f"Olá {usuario.nome}, seu agendamento para {data} às {hora} foi cancelado com sucesso."
-            )
-
         flash('Agendamento removido com sucesso!', 'success')
     else:
         flash('Agendamento não encontrado!', 'danger')
 
     return redirect(url_for('meus_agendamentos'))
 
+
 @app.route('/sair')
 def sair():
     session['usuario_logado'] = None
     return redirect(url_for('logar'))
 
+
+
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)# debug = True evita ter que rodar manualmente o flask apos cada atualizacao no codigo
+    
