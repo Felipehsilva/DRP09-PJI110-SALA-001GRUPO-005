@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for
+from flask import Flask, render_template, request, redirect,jsonify, session, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 
@@ -115,9 +115,25 @@ def cadastroSucesso():
 
 @app.route("/agendar")
 def agendar():
-    if session.get('usuario_logado') is None:
+    if 'usuario_logado' not in session or not session['usuario_logado']:
         return redirect(url_for('logar'))
-    return render_template('agendar.html')
+
+    # Pega todos os agendamentos existentes
+    agendamentos = Agendamento.query.all()
+
+    # Cria uma lista com tuplas (data, hora)
+    horarios_ocupados = [(a.dataAgendamento, a.horaAgendamento) for a in agendamentos]
+
+    return render_template('agendar.html', horarios_ocupados=horarios_ocupados)
+
+
+@app.route('/horarios_ocupados')
+def horarios_ocupados():
+    data = request.args.get('data')  # Pega a data da query string
+    agendamentos = Agendamento.query.filter_by(dataAgendamento=data).all()
+    horarios = [a.horaAgendamento for a in agendamentos]
+    return jsonify({"ocupados": horarios})
+
 
 @app.route('/enviarAgendamento', methods=['POST'])
 def adicionar_agendamento():
