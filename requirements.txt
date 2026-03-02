@@ -1,4 +1,6 @@
 Flask
 Flask-SQLAlchemy
 mysql-connector-python
+requests
+pytest
 gunicorn
