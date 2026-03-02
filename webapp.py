@@ -1,9 +1,6 @@
-from flask import Flask, render_template, request, redirect,session , flash, url_for
+from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy 
-
-
-
-
+import requests 
 
 app = Flask(__name__)
 
@@ -16,7 +13,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = \
     senha = 'AVNS_3NuM-f_GZn4ASvN5Glb',
     servidor = 'mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
     database = 'defaultdb'
-
 )
 
 db = SQLAlchemy(app)
@@ -29,6 +25,8 @@ class Usuario(db.Model):
     email = db.Column(db.String(100), nullable=False)
     telefone = db.Column(db.String(20), nullable=False)
     senha = db.Column(db.String(20), nullable=False)
+    rua = db.Column(db.String(100), nullable=True) 
+    bairro = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
         return '<Name %r>' % self.name
@@ -42,26 +40,17 @@ class Agendamento(db.Model):
     def __repr__(self):
         return '<Name %r>' % self.name    
 
-
 @app.route("/logar") 
 def logar():
-    return render_template('login.html',
-                           
-                           titulo = "Pagina de Login"
-                           
-                           )
+    return render_template('login.html', titulo="Pagina de Login")
 
 @app.route("/") 
 def logar1():
-    return render_template('login.html',
-                           
-                           titulo = "Pagina de Login"
-                           
-                           )
+    return render_template('login.html', titulo="Pagina de Login")
 
-@app.route('/autenticar',methods=['POST',]) 
+@app.route('/autenticar', methods=['POST',]) 
 def autenticar():
-    usuario = Usuario.query.filter_by(login_usuario = request.form['txtLogin']).first()
+    usuario = Usuario.query.filter_by(login_usuario=request.form['txtLogin']).first()
     if usuario:    
         if request.form['txtSenha'] == usuario.senha:
             session['usuario_logado'] = request.form['txtLogin']
@@ -74,17 +63,11 @@ def autenticar():
         flash("Usuario/Senha invalida")
         return redirect(url_for('logar'))
 
-
-
 @app.route("/cadastrar") 
 def cadastrarUsuario():
-    return render_template('cadastrar.html',
-                           
-                           titulo = "Cadastrar"
-                           
-                           )
+    return render_template('cadastrar.html', titulo="Cadastrar")
 
-@app.route('/adicionar',methods=['POST'])
+@app.route('/adicionar', methods=['POST'])
 def adicionar_usuario():
     nome = request.form['txtCadastroNomeUser']
     user = request.form['txtCadastroUser']
@@ -92,11 +75,11 @@ def adicionar_usuario():
     email = request.form['txtCadastroEmail']
     telefone = request.form['txtCadastroTel']
     senha = request.form['txtCadastroSenha']
-    
+    rua = request.form['txtRua']
+    bairro = request.form['txtBairro']
 
-
-    usuario = Usuario.query.filter_by(login_usuario = user).first() 
-    cpf_usuario = Usuario.query.filter_by(cpf = cpf).first() 
+    usuario = Usuario.query.filter_by(login_usuario=user).first() 
+    cpf_usuario = Usuario.query.filter_by(cpf=cpf).first() 
 
     if usuario: 
         flash("Usuario ja cadastrado")
@@ -104,49 +87,35 @@ def adicionar_usuario():
     if cpf_usuario: 
         flash("CPF ja cadastrado")
         return redirect(url_for('cadastrarUsuario'))
-    novo_user = Usuario(cpf = cpf, login_usuario = user, nome = nome, email = email, telefone = telefone, senha = senha)
+        
+    novo_user = Usuario(cpf=cpf, login_usuario=user, nome=nome, email=email, telefone=telefone, senha=senha, rua=rua, bairro=bairro)
     db.session.add(novo_user)
     db.session.commit()
     return redirect(url_for('cadastroSucesso'))
 
 @app.route("/cadastroSucesso") 
 def cadastroSucesso():
-    
-    
-    return render_template('success-registration.html',
-                           
-                           titulo = "Registro Concluido com Sucesso"
-                           
-                           )
+    return render_template('success-registration.html', titulo="Registro Concluido com Sucesso")
 
 @app.route("/agendamentos") 
 def agendamentos():
-    if session['usuario_logado'] == None or 'usuario_logado' not in session:
+    if session.get('usuario_logado') is None:
         return redirect(url_for('logar'))
     
-    return render_template('agendamentos.html',
-                           
-                           titulo = "agendamentos"
-                           
-                           )
-
+    return render_template('agendamentos.html', titulo="agendamentos")
 
 @app.route("/agendar") 
 def agendar():
-    if session['usuario_logado'] == None or 'usuario_logado' not in session:
+    if session.get('usuario_logado') is None:
         return redirect(url_for('logar'))
     
-    return render_template('agendar.html',
-                           
-                           
-                           
-                           )
+    return render_template('agendar.html')
 
 @app.route('/enviarAgendamento', methods=['POST'])
 def adicionar_agendamento():
     dataEscolhida = request.form['data']
     horarioEscolhido = request.form['horario']
-    user = session.get('usuario_logado')  # Usando .get() para evitar erro se não existir
+    user = session.get('usuario_logado') 
 
     if not user:
         flash("Você precisa estar logado para agendar.")
@@ -157,6 +126,34 @@ def adicionar_agendamento():
     if not usuario:
         flash("Usuário não encontrado.")
         return redirect(url_for('logar'))
+
+    # ==========================================
+    # 1. EXTERNAL API CONSUMPTION (Holiday Validation)
+    # Checks BrasilAPI before touching the database
+    # ==========================================
+    try:
+        partes_data = dataEscolhida.split('/')
+        dia = partes_data[0]
+        mes = partes_data[1]
+        ano = partes_data[2]
+        
+        # Format date to yyyy-mm-dd as required by the API
+        data_formatada_api = f"{ano}-{mes}-{dia}"
+        
+        resposta = requests.get(f"https://brasilapi.com.br/api/feriados/v1/{ano}", timeout=5)
+        
+        if resposta.status_code == 200:
+            feriados = resposta.json()
+            
+            for feriado in feriados:
+                if feriado['date'] == data_formatada_api:
+                    # Blocks the scheduling process and alerts the user
+                    flash(f"❌ Não é possível agendar nesta data. O dia {dataEscolhida} é feriado nacional ({feriado['name']}).")
+                    return redirect(url_for('agendar'))
+    except Exception as e:
+        # Graceful degradation: If the API is down, allow the booking
+        print(f"Warning: Failed to fetch Holiday API: {e}")
+    # ==========================================
 
     # Verificar se já existe um agendamento no mesmo dia e horário
     agendamento_existente = Agendamento.query.filter_by(
@@ -196,9 +193,7 @@ def meus_agendamentos():
 
     agendamentos = Agendamento.query.filter_by(cpf=usuario.cpf).all()
     
-  
     return render_template("agendamentos.html", agendamentos=agendamentos, titulo="Meus Agendamentos")
-
 
 @app.route('/remover_agendamento', methods=['POST'])
 def remover_agendamento():
@@ -216,15 +211,53 @@ def remover_agendamento():
     return redirect(url_for('meus_agendamentos'))
 
 
+
+# ==========================================
+#        API REST - FORNECIMENTO DE DADOS
+# ==========================================
+
+@app.route('/api/agendamentos', methods=['GET'])
+def api_listar_agendamentos():
+    """Retorna todos os agendamentos registrados no banco em JSON."""
+    agendamentos = Agendamento.query.all()
+    # Converte os objetos do banco para uma lista de dicionários
+    output = []
+    for ag in agendamentos:
+        output.append({
+            "cpf_cliente": ag.cpf,
+            "data": ag.dataAgendamento,
+            "hora": ag.horaAgendamento
+        })
+    return jsonify(output), 200
+
+@app.route('/api/usuarios', methods=['GET'])
+def api_listar_usuarios():
+    """Retorna a lista de usuários cadastrados (sem exibir a senha)."""
+    usuarios = Usuario.query.all()
+    output = []
+    for user in usuarios:
+        output.append({
+            "nome": user.nome,
+            "login": user.login_usuario,
+            "email": user.email,
+            "telefone": user.telefone
+        })
+    return jsonify(output), 200
+
+@app.route('/api/agendamentos/cliente/<int:cpf>', methods=['GET'])
+def api_agendamentos_por_cliente(cpf):
+    """Filtra agendamentos por um CPF específico via URL."""
+    agendamentos = Agendamento.query.filter_by(cpf=cpf).all()
+    if not agendamentos:
+        return jsonify({"message": "Nenhum agendamento encontrado para este CPF"}), 404
+        
+    output = [{"data": ag.dataAgendamento, "hora": ag.horaAgendamento} for ag in agendamentos]
+    return jsonify(output), 200    
+
 @app.route('/sair')
 def sair():
     session['usuario_logado'] = None
     return redirect(url_for('logar'))
 
-
-
-
-
 if __name__ == '__main__':
-    app.run(debug=True)# debug = True evita ter que rodar manualmente o flask apos cada atualizacao no codigo
-    
+    app.run(debug=True)

@@ -31,6 +31,19 @@
             </div>
 
             <div class="mb-3">
+                <label>CEP:</label>
+                <input type="text" name="txtCEP" id="txtCEP" class="form-control" onblur="buscarCEP()" required>
+            </div>
+            <div class="mb-3">
+                <label>Rua:</label>
+                <input type="text" name="txtRua" id="txtRua" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+                <label>Bairro:</label>
+                <input type="text" name="txtBairro" id="txtBairro" class="form-control" readonly>
+            </div>
+
+            <div class="mb-3">
                 <label for="txtCadastroEmail">Email:</label>
                 <input type="text" name="txtCadastroEmail" id="txtCadastroEmail" class="form-control">
             </div>
@@ -54,4 +67,22 @@
         </fieldset>
         
     </form>
+
+    <script>
+        function buscarCEP() {
+            let cep = document.getElementById('txtCEP').value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+        
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.erro) {
+                        document.getElementById('txtRua').value = data.logradouro;
+                        document.getElementById('txtBairro').value = data.bairro;
+                    } else {
+                        alert("CEP não encontrado.");
+                    }
+                });
+        }
+        </script>
 {% endblock %}   
