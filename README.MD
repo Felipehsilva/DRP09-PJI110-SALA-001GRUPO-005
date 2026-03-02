@@ -17,6 +17,7 @@ Este projeto é uma plataforma web para gestão de agendamentos de serviços de 
 ### 1. Uso e Fornecimento de API (Requisito Principal)
 O sistema opera nas duas frentes de integração exigidas:
 * **Uso (Consumo):** Integração com a **BrasilAPI**. O sistema intercepta o agendamento e consulta se a data escolhida é um feriado nacional. Caso positivo, o agendamento é bloqueado por regra de negócio.
+* Além disso, a API dos Correios é utilizada na etapa de cadastro para a busca automática de endereços.
 * **Fornecimento:** O software disponibiliza endpoints REST que entregam dados em formato JSON:
     * `/api/agendamentos`: Retorna a lista completa de horários marcados.
     * `/api/usuarios`: Retorna a lista de usuários cadastrados (com filtros de segurança).
