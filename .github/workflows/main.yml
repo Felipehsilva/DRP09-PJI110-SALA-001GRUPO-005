@@ -4,9 +4,9 @@ name: Python Application CI
 # para o branch principal (main).
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   build_and_test:
