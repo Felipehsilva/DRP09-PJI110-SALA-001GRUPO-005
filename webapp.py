@@ -1,19 +1,22 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy 
 import requests 
-
+import os
 app = Flask(__name__)
 
 app.secret_key = 'PI1'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = \
-'{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
-    SGBD = 'mysql+mysqlconnector',
-    usuario = 'avnadmin',
-    senha = 'AVNS_3NuM-f_GZn4ASvN5Glb',
-    servidor = 'mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
-    database = 'defaultdb'
-)
+if os.environ.get("TESTING") == "True":
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = \
+    '{SGBD}://{usuario}:{senha}@{servidor}/{database}'.format(
+        SGBD = 'mysql+mysqlconnector',
+        usuario = 'avnadmin',
+        senha = 'AVNS_3NuM-f_GZn4ASvN5Glb',
+        servidor = 'mysql-3369c770-felipehenriquedasilva-8135.h.aivencloud.com:11802',
+        database = 'defaultdb'
+    )
 
 db = SQLAlchemy(app)
                           

@@ -1,0 +1,35 @@
+name: Python Application CI
+
+# Este pipeline será disparado a cada Push ou Pull Request
+# para o branch principal (main).
+on:
+  push:
+    branches: [ "deploy" ]
+  pull_request:
+    branches: [ "deploy" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Faz o checkout do repósitorio 
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    # 2. Configura a versão do Python desejada (aqui estou usando a 3.11, comum para seu ambiente local)
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    # 3. Restaura e instala as dependências
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # 4. Inclui e roda o comando Pytest definindo o PYTHONPATH para achar o app web
+    - name: Test with pytest
+      run: |
+        PYTHONPATH=. pytest tests/ -v

@@ -1,2 +1,5 @@
 #gitignore
 comandos_terminal_uteis.txt
+__pycache__/
+*.pyc
+pi1_env/
