@@ -18,7 +18,7 @@ else:
         database = 'defaultdb'
     )
 
-db = SQLAlchemy(app)
+db = SQLAlchemy(app) 
                           
 class Usuario(db.Model):
     # a variavel tem que ser o mesmo nome do campo da tabela
