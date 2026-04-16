@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 import requests
 
+import os
 app = Flask(__name__)
 app.secret_key = 'PI1'
 
