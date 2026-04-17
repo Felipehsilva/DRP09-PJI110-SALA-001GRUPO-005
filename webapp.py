@@ -32,7 +32,7 @@ class Usuario(db.Model):
     bairro = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
-        return '<Name %r>' % self.name
+        return '<Name %r>' % self.name 
     
 class Agendamento(db.Model):
     # a variavel tem que ser o mesmo nome do campo da tabela
