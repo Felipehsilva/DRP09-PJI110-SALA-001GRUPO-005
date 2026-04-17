@@ -43,7 +43,7 @@ class Agendamento(db.Model):
     def __repr__(self):
         return '<Name %r>' % self.name    
 
-@app.route("/logar") 
+@app.route("/logar")  
 def logar():
     return render_template('login.html', titulo="Pagina de Login")
 
